@@ -1,0 +1,75 @@
+-----------------------------------------------------------------
+Q3:
+-----------------------------------------------------------------
+
+select count(1) from green_taxi_data
+where (date(lpep_pickup_datetime) between '2019-10-01' and '2019-11-01'
+and date(lpep_dropoff_datetime) between '2019-10-01' and '2019-11-01')
+and trip_distance <= 1;
+
+select count(1) from green_taxi_data
+where (date(lpep_pickup_datetime) between '2019-10-01' and '2019-11-01'
+and date(lpep_dropoff_datetime) between '2019-10-01' and '2019-11-01')
+and trip_distance > 1
+and trip_distance <= 3;
+
+select count(1) from green_taxi_data
+where (date(lpep_pickup_datetime) between '2019-10-01' and '2019-11-01'
+and date(lpep_dropoff_datetime) between '2019-10-01' and '2019-11-01')
+and trip_distance > 3
+and trip_distance <= 7;
+
+select count(1) from green_taxi_data
+where (date(lpep_pickup_datetime) between '2019-10-01' and '2019-11-01'
+and date(lpep_dropoff_datetime) between '2019-10-01' and '2019-11-01')
+and trip_distance > 7
+and trip_distance <= 10;
+
+select count(1) from green_taxi_data
+where (date(lpep_pickup_datetime) between '2019-10-01' and '2019-11-01'
+and date(lpep_dropoff_datetime) between '2019-10-01' and '2019-11-01')
+and trip_distance > 10;
+---104,838; 199,013; 109,645; 27,688; 35,202
+
+
+--------------------------------------------------------------------
+Q4:
+--------------------------------------------------------------------
+
+select date(lpep_pickup_datetime)
+from green_taxi_data
+where trip_distance in (select max(trip_distance)
+			from green_taxi_data);
+---2019-10-31
+
+
+--------------------------------------------------------------------
+Q5:
+--------------------------------------------------------------------
+
+select * from
+(select tzl."Zone", sum(total_amount) Zone_Total
+from green_taxi_data gta, taxi_zone_lookup tzl
+where date(gta.lpep_pickup_datetime) = '2019-10-18'
+and gta."PULocationID" = tzl."LocationID"
+group by tzl."Zone")
+where Zone_Total >= 13000
+order by Zone_Total desc;
+---East Harlem North, East Harlem South, Morningside Heights
+
+--------------------------------------------------------------------
+Q6:
+--------------------------------------------------------------------
+
+select tzl1."Zone"
+from green_taxi_data gtd, taxi_zone_lookup tzl, taxi_zone_lookup tzl1
+where date(lpep_pickup_datetime) between '2019-10-01' and '2019-10-31'
+and tzl."Zone" = 'East Harlem North'
+and tzl."LocationID" = gtd."PULocationID"
+and gtd.tip_amount = (select max(gtd.tip_amount)
+					from green_taxi_data gtd, taxi_zone_lookup tzl
+					where date(lpep_pickup_datetime) between '2019-10-01' and '2019-10-31'
+					and tzl."Zone" = 'East Harlem North'
+					and tzl."LocationID" = gtd."PULocationID")
+and gtd."DOLocationID"=tzl1."LocationID"
+---JFK Airport
